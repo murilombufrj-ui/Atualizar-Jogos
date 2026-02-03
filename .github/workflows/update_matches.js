@@ -51,5 +51,5 @@ async function run() {
 
 run().catch(err => {
   console.error("Erro no workflow:", err);
-  process.exit(1);
+  // Não encerra com exit, apenas loga
 });
