@@ -1,12 +1,5 @@
-const fetch = require("node-fetch");
-const { createClient } = require("@supabase/supabase-js");
-
-// Configurações do Supabase
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
-
-// URL do Pipedream
 const pipedreamUrl = process.env.PIPEDREAM_WEBHOOK;
 
 async function run() {
@@ -23,24 +16,24 @@ async function run() {
 
     const now = new Date();
 
-    // Buscar jogos sem resultado
-    const { data: jogos, error } = await supabase
-      .from("matches")
-      .select("home,away,data,hora,gols_home,gols_away")
-      .is("gols_home", null)
-      .is("gols_away", null);
+    // Buscar jogos sem resultado no Supabase via REST
+    const supaRes = await fetch(`${supabaseUrl}/rest/v1/matches?select=home,away,data,hora,gols_home,gols_away&gols_home=is.null&gols_away=is.null`, {
+      method: "GET",
+      headers: {
+        "apikey": supabaseKey,
+        "Authorization": `Bearer ${supabaseKey}`,
+        "Accept": "application/json"
+      }
+    });
 
-    if (error) {
-      console.error("Erro ao buscar jogos no Supabase:", error);
-      return;
-    }
+    const jogos = await supaRes.json();
 
     if (!jogos || jogos.length === 0) {
       console.log("Nenhum jogo pendente encontrado.");
       return;
     }
 
-    // Agrupar por janela (data + hora do jogo)
+    // Agrupar por janela ativa
     const janelas = {};
     for (const jogo of jogos) {
       const jogoDate = new Date(`${jogo.data}T${jogo.hora}`);
@@ -68,7 +61,7 @@ async function run() {
         const res = await fetch(pipedreamUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ jogos: jogosNaJanela }),
+          body: JSON.stringify({ jogos: jogosNaJanela })
         });
         const text = await res.text();
         console.log("Resposta Pipedream:", text);
@@ -77,12 +70,11 @@ async function run() {
       }
     }
 
+    console.log("Script finalizado com sucesso.");
+
   } catch (err) {
     console.error("Erro geral no workflow:", err);
   }
-
-  console.log("Script finalizado com sucesso.");
 }
 
 run();
-
