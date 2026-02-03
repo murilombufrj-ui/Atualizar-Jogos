@@ -1,5 +1,5 @@
-import fetch from "node-fetch";
-import { createClient } from "@supabase/supabase-js";
+const fetch = require("node-fetch");
+const { createClient } = require("@supabase/supabase-js");
 
 // Configurações do Supabase
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -53,13 +53,13 @@ async function run() {
       }
     }
 
-    // Disparar Pipedream
     const keys = Object.keys(janelas);
     if (keys.length === 0) {
       console.log("Nenhuma janela ativa no momento.");
       return;
     }
 
+    // Disparar Pipedream
     for (const key of keys) {
       const jogosNaJanela = janelas[key];
       console.log(`Disparando Pipedream para a janela ${key}:`, jogosNaJanela);
