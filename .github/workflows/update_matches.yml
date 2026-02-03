@@ -1,30 +1,16 @@
-name: Atualizar Resultados do Brasileirão
-
 on:
+  workflow_dispatch: # permite rodar manualmente
   schedule:
-    # roda a cada 5 minutos
-    - cron: '*/5 * * * *'  # GitHub Actions usa UTC, ajuste conforme seu fuso
-  workflow_dispatch: # permite disparar manualmente se quiser
+    - cron: '*/5 * * * *' # roda a cada 5 minutos
 
 jobs:
   update_matches:
     runs-on: ubuntu-latest
     steps:
-      - name: Checar código
-        uses: actions/checkout@v3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: "20"
-
-      - name: Instalar dependências
-        run: npm install
-
+      - uses: actions/checkout@v3
       - name: Rodar atualização de jogos
-        run: node update_matches.js
+        run: node .github/workflows/update_matches.js
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           PIPEDREAM_WEBHOOK: ${{ secrets.PIPEDREAM_WEBHOOK }}
-
